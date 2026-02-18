@@ -185,7 +185,19 @@ Remember: You're not just answering questions. You're creating anticipation for 
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    // Parse request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError);
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 },
+      );
+    }
+
+    const { messages } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -194,13 +206,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // Convert messages to Anthropic format
-    const anthropicMessages = messages.map(
-      (msg: { role: string; content: string }) => ({
+    // Filter to only include valid user/assistant messages
+    const anthropicMessages = messages
+      .filter(
+        (msg: { role: string; content: string }) =>
+          msg.role === "user" || msg.role === "assistant",
+      )
+      .map((msg: { role: string; content: string }) => ({
         role: msg.role as "user" | "assistant",
         content: msg.content,
-      }),
-    );
+      }));
+
+    if (anthropicMessages.length === 0) {
+      return NextResponse.json(
+        { error: "At least one user message required" },
+        { status: 400 },
+      );
+    }
+
+    console.log("Sending to Claude:", JSON.stringify(anthropicMessages));
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -216,8 +240,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: text });
   } catch (error) {
     console.error("Chat API error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to generate response" },
+      { error: "Failed to generate response", details: errorMessage },
       { status: 500 },
     );
   }
