@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ============================================
-// TAMBA LAS VEGAS — COMPLETE KNOWLEDGE BASE
+// TAMBA LAS VEGAS — ENHANCED KNOWLEDGE BASE
+// With taste profiles, allergens, and mood matching
 // ============================================
 
 interface MenuItem {
@@ -13,6 +14,12 @@ interface MenuItem {
   dietary: string[];
   chefFavorite?: boolean;
   addOns?: { name: string; price: number }[];
+  // Enhanced attributes for recommendations
+  taste: string[]; // sweet, savory, spicy, tangy, umami, smoky, rich, light, creamy, crispy
+  protein?: string; // chicken, lamb, goat, beef, fish, seafood, vegetable, paneer
+  allergens: string[]; // dairy, nuts, gluten, shellfish, eggs, soy, fish
+  spiceLevel: number; // 0-3 (0=none, 1=mild, 2=medium, 3=hot)
+  cookingMethod?: string; // tandoor, josper, wok, raw, braised
 }
 
 interface MenuCategory {
@@ -33,7 +40,6 @@ const TAMBA_KNOWLEDGE = {
     philosophy: "Every Bite Is a Chronicle / Every Meal, a Journey",
     recognition: "Michelin-recognized Chef Anand Singh leads the kitchen",
   },
-
   location: {
     address: "6671 Las Vegas Blvd South, Suite A-117",
     city: "Las Vegas, NV 89119",
@@ -44,19 +50,16 @@ const TAMBA_KNOWLEDGE = {
     instagram: "@tambalasvegas",
     reservations: "sevenrooms.com/explore/tambalasvegas",
   },
-
   hours: {
     days: "Monday - Sunday",
     time: "5:00 PM - 10:00 PM",
     note: "Open 7 days a week for dinner service only",
   },
-
   team: {
     chef: {
       name: "Chef Anand Singh",
       title: "Executive Chef",
       recognition: "Michelin-recognized",
-      signature: "His signature dishes are marked with ◉",
     },
     mixologist: {
       name: "Giuseppe Gonzalez",
@@ -64,62 +67,11 @@ const TAMBA_KNOWLEDGE = {
       venue: "Bar Jadu",
     },
   },
-
-  venues: {
-    mainDining: {
-      name: "Main Dining Room",
-      description:
-        "A limited-seating, upscale dining environment featuring warm terracotta tones, plush bouclé chairs, rich wood tables, banquette booths, and a library-style bookshelf wall. The ambiance is refined and intimate.",
-    },
-    barJadu: {
-      name: "Bar Jadu",
-      description:
-        "A hidden, enchanting cocktail bar within the restaurant. Master mixologist Giuseppe Gonzalez crafts cocktails designed to delight, surprise, and transport guests.",
-      reservations: true,
-    },
-    privateRoom: {
-      name: "Jadu Private Dining Room",
-      description:
-        "An exclusive, tucked-away private dining space within Tamba designed for intimate and luxurious events.",
-      features: [
-        "Elegant Ambiance: Contemporary design blended with rich cultural influences",
-        "Exclusive Privacy: Separated from the main dining area",
-        "Customized Menus: Work directly with Chef Anand Singh",
-        "Seamless Service: Dedicated hospitality team",
-      ],
-      perfectFor:
-        "VIP gatherings, corporate dinners, intimate celebrations, exclusive tasting experiences",
-      minimumSpend: 3000,
-    },
-  },
-
-  cookingMethods: [
-    {
-      name: "Tandoor",
-      description:
-        "Traditional clay oven cooking for breads and tandoori items",
-    },
-    {
-      name: "Charcoal Mangal",
-      description:
-        "Traditional South Asian charcoal grill for live-fire cooking",
-    },
-    {
-      name: "Josper Oven",
-      description:
-        "Enclosed charcoal oven combining intense grill + oven heat — Tamba's crown jewel",
-    },
-    { name: "Wok", description: "Chinese-style high-heat stir fry cooking" },
-    { name: "Tawa", description: "Flat iron griddle used for charring" },
-  ],
-
-  dietaryKey: {
-    V: "Vegetarian",
-    VG: "Vegan",
-    GF: "Gluten Free",
-    chef: "Anand's Favorite (◉)",
-  },
 };
+
+// ============================================
+// ENHANCED MENU WITH TASTE PROFILES & ALLERGENS
+// ============================================
 
 const MENU: MenuCategory[] = [
   {
@@ -134,6 +86,11 @@ const MENU: MenuCategory[] = [
         description:
           "Tandoori Roasted Artichoke Hearts, Passion Fruit, Truffle Sesame Dressing, Garlic Aioli",
         dietary: ["V", "VG", "GF"],
+        taste: ["savory", "umami", "light"],
+        protein: "vegetable",
+        allergens: ["soy"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
       },
       {
         name: "Tamarind Spiced Hamachi",
@@ -141,6 +98,11 @@ const MENU: MenuCategory[] = [
         description: "Asian Pear, Curry Emulsion, Tamarind Ponzu & Serrano",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["tangy", "sweet", "spicy", "light"],
+        protein: "fish",
+        allergens: ["fish", "soy"],
+        spiceLevel: 2,
+        cookingMethod: "raw",
       },
       {
         name: "Octopus Carpaccio",
@@ -148,13 +110,22 @@ const MENU: MenuCategory[] = [
         description:
           "Octopus, Miso Dressing, Green Chutney Purée & Crispy Garlic",
         dietary: ["GF"],
+        taste: ["umami", "savory", "light"],
+        protein: "seafood",
+        allergens: ["shellfish", "soy"],
+        spiceLevel: 0,
+        cookingMethod: "raw",
       },
       {
-        name: "Caviar Puri (4 bites)",
+        name: "Caviar Puri",
         price: 64,
         description:
-          "Puri Crisps Filled With Whipped Labneh, Egg White/Yolk, Shallots & Chives",
+          "Puri Crisps Filled With Whipped Labneh, Egg White/Yolk, Shallots & Chives (4 bites)",
         dietary: [],
+        taste: ["rich", "savory", "crispy", "creamy"],
+        protein: "seafood",
+        allergens: ["dairy", "eggs", "gluten", "fish"],
+        spiceLevel: 0,
       },
       {
         name: "Madras Tuna Laap",
@@ -162,6 +133,11 @@ const MENU: MenuCategory[] = [
         description:
           "Tuna, Madras Curry, Mint, Chili & Kaffir Lime Roasted Rice Powder",
         dietary: ["GF"],
+        taste: ["spicy", "tangy", "light", "fresh"],
+        protein: "fish",
+        allergens: ["fish"],
+        spiceLevel: 2,
+        cookingMethod: "raw",
       },
       {
         name: "Seasonal Oysters",
@@ -169,6 +145,11 @@ const MENU: MenuCategory[] = [
         description:
           "Chili-Infused Ponzu, Yuzu Mignonette & Apple Wasabi Granita",
         dietary: ["GF"],
+        taste: ["tangy", "spicy", "light", "fresh"],
+        protein: "seafood",
+        allergens: ["shellfish", "soy"],
+        spiceLevel: 1,
+        cookingMethod: "raw",
       },
       {
         name: "Kimchi Butter Oysters",
@@ -177,12 +158,21 @@ const MENU: MenuCategory[] = [
           "Grilled Oysters with Kimchi Butter, Smoked Sea Salt & Citrus Segments",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["umami", "savory", "tangy", "smoky"],
+        protein: "seafood",
+        allergens: ["shellfish", "dairy"],
+        spiceLevel: 1,
+        cookingMethod: "josper",
       },
       {
         name: "Oscietra Caviar 30g",
         price: 199,
         description: "Paired with Louis XVIII Cognac",
         dietary: [],
+        taste: ["rich", "savory", "umami"],
+        protein: "seafood",
+        allergens: ["fish"],
+        spiceLevel: 0,
       },
     ],
   },
@@ -193,26 +183,39 @@ const MENU: MenuCategory[] = [
       "Hand-formed, fire-kissed nigirizushi. A nod to Edomae tradition, reimagined through Indian coastal flavor.",
     items: [
       {
-        name: "Salmon",
+        name: "Salmon Nigiri",
         price: 24,
         description:
           "Seared Salmon, Omakase Soy, Citrus Aioli, Yuzu & Micro Cilantro",
         dietary: [],
+        taste: ["savory", "umami", "light"],
+        protein: "fish",
+        allergens: ["fish", "soy", "eggs"],
+        spiceLevel: 0,
       },
       {
-        name: "Tuna",
+        name: "Tuna Nigiri",
         price: 26,
         description:
           "Tuna, Honey Truffle Glaze, Garlic Chive, Smoked Sea Salt, Kizami Wasabi & Shiso",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["umami", "sweet", "savory"],
+        protein: "fish",
+        allergens: ["fish"],
+        spiceLevel: 1,
       },
       {
-        name: "Wagyu",
+        name: "Wagyu Nigiri",
         price: 32,
         description:
           "Charred Margaret River Wagyu, Caviar, Tamarind Ponzu, Yuzu Kosho, Truffle Oil & Garlic Crisp",
         dietary: ["GF"],
+        taste: ["rich", "umami", "savory", "smoky"],
+        protein: "beef",
+        allergens: ["fish", "soy"],
+        spiceLevel: 0,
+        cookingMethod: "josper",
       },
     ],
   },
@@ -228,14 +231,22 @@ const MENU: MenuCategory[] = [
         description:
           "Roasted Beet, Cucumber, Lime Foam & Rosemary Garlic Crostini",
         dietary: ["V", "VG"],
+        taste: ["sweet", "tangy", "light", "fresh"],
+        protein: "vegetable",
+        allergens: ["gluten"],
+        spiceLevel: 0,
       },
       {
-        name: "Green Papaya",
+        name: "Green Papaya Salad",
         price: 24,
         description:
           "Chayote, Mint, Cherry Tomato, Long Beans, Lime Chili Dressing & Roasted Peanuts",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["tangy", "spicy", "fresh", "crispy"],
+        protein: "vegetable",
+        allergens: ["nuts"],
+        spiceLevel: 2,
         addOns: [{ name: "Prawns", price: 5 }],
       },
       {
@@ -243,7 +254,12 @@ const MENU: MenuCategory[] = [
         price: 24,
         description:
           "Mangal Charred Broccoli, Tamarind Caesar Dressing, Naan Croutons & 36-Month Aged Parmigiano",
-        dietary: ["V", "VG"],
+        dietary: ["V"],
+        taste: ["savory", "tangy", "smoky", "crispy"],
+        protein: "vegetable",
+        allergens: ["dairy", "gluten", "eggs"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
         addOns: [{ name: "Boquerones", price: 5 }],
       },
     ],
@@ -261,6 +277,10 @@ const MENU: MenuCategory[] = [
           "Crisp Hand-Folded Samosa, Masala Potatoes, Green Peas, Pomegranate, Sev & Curry-Spiced Chickpeas",
         dietary: ["V", "VG"],
         chefFavorite: true,
+        taste: ["savory", "tangy", "spicy", "crispy"],
+        protein: "vegetable",
+        allergens: ["gluten"],
+        spiceLevel: 2,
       },
       {
         name: "Sea Bass Amritsari",
@@ -268,6 +288,10 @@ const MENU: MenuCategory[] = [
         description:
           "Fried Seabass, Daikon Kimchi Salad, Garlic and Tomato Sambal with Mint Salsa",
         dietary: ["GF"],
+        taste: ["savory", "crispy", "tangy", "spicy"],
+        protein: "fish",
+        allergens: ["fish"],
+        spiceLevel: 2,
       },
     ],
   },
@@ -283,6 +307,11 @@ const MENU: MenuCategory[] = [
         description:
           "House-Made Cottage Cheese, Bell Pepper, Cauliflower Masala Purée, Mint & Garlic Chutney",
         dietary: ["GF"],
+        taste: ["creamy", "savory", "smoky"],
+        protein: "paneer",
+        allergens: ["dairy"],
+        spiceLevel: 1,
+        cookingMethod: "tandoor",
       },
       {
         name: "Lemongrass Fish Tikka",
@@ -290,6 +319,11 @@ const MENU: MenuCategory[] = [
         description:
           "Chilean Sea Bass, Ajwain, Madras Curry, Tomato Salsa, Kachumber Salad, Tamarind & Mint Chutney",
         dietary: ["GF"],
+        taste: ["savory", "tangy", "spicy", "smoky"],
+        protein: "fish",
+        allergens: ["fish"],
+        spiceLevel: 2,
+        cookingMethod: "tandoor",
       },
       {
         name: "Methi Murgh",
@@ -297,6 +331,11 @@ const MENU: MenuCategory[] = [
         description:
           "Fenugreek-Spiced Chicken Thigh Kebab, Butter Chat Masala, Kimchi, Garlic Hummus & Green Chutneys",
         dietary: ["GF"],
+        taste: ["savory", "smoky", "spicy", "rich"],
+        protein: "chicken",
+        allergens: ["dairy", "soy"],
+        spiceLevel: 2,
+        cookingMethod: "tandoor",
       },
       {
         name: "Lasooni Lamb Chop",
@@ -305,6 +344,11 @@ const MENU: MenuCategory[] = [
           "Lumina Farms, NZ — Dry Spice Rub, Cumin Spinach Potato Masala with Pickled Salad",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["rich", "smoky", "savory", "spicy"],
+        protein: "lamb",
+        allergens: [],
+        spiceLevel: 2,
+        cookingMethod: "tandoor",
       },
       {
         name: "Angithi Kefta",
@@ -312,6 +356,11 @@ const MENU: MenuCategory[] = [
         description:
           "Filet Mignon & Ground Lamb, Mint Garlic Labneh, Pickled Onion, Grilled Tomato & Garlic Aioli",
         dietary: ["GF"],
+        taste: ["rich", "savory", "smoky", "tangy"],
+        protein: "lamb",
+        allergens: ["dairy", "eggs"],
+        spiceLevel: 1,
+        cookingMethod: "tandoor",
       },
     ],
   },
@@ -327,6 +376,11 @@ const MENU: MenuCategory[] = [
         description:
           "Purple Cauliflower, Roasted Cherry Tomato, Green Coconut Curry, Broccoli Purée with Japanese Chili Oil",
         dietary: ["GF"],
+        taste: ["savory", "smoky", "spicy", "umami"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 2,
+        cookingMethod: "josper",
       },
       {
         name: "Tawa Charred Octopus",
@@ -335,6 +389,11 @@ const MENU: MenuCategory[] = [
           "Cauliflower Purée, Beetroot, Fennel, Yuzu Lime Chaat Aioli, Orange Glaze, Rice Crunch with Eel Sauce",
         dietary: [],
         chefFavorite: true,
+        taste: ["umami", "savory", "tangy", "smoky", "crispy"],
+        protein: "seafood",
+        allergens: ["shellfish", "eggs", "soy", "gluten"],
+        spiceLevel: 1,
+        cookingMethod: "josper",
       },
       {
         name: "Banana Leaf Seabass",
@@ -342,6 +401,11 @@ const MENU: MenuCategory[] = [
         description:
           "Wrapped & Roasted Chilean Seabass, Truffle Celeriac Purée, Edamame, Kerala Sauce with Creamy Citric Lime",
         dietary: ["GF"],
+        taste: ["rich", "savory", "creamy", "tangy"],
+        protein: "fish",
+        allergens: ["fish", "dairy"],
+        spiceLevel: 1,
+        cookingMethod: "josper",
       },
       {
         name: "Angara Wagyu",
@@ -349,6 +413,11 @@ const MENU: MenuCategory[] = [
         description:
           "Margaret River New York 10 oz — Broccoli, Roast Carrot Purée, Saffron Porcini Mushroom Sauce & Balsamic Curry Glaze",
         dietary: [],
+        taste: ["rich", "umami", "savory", "smoky"],
+        protein: "beef",
+        allergens: ["dairy"],
+        spiceLevel: 0,
+        cookingMethod: "josper",
       },
     ],
   },
@@ -364,6 +433,11 @@ const MENU: MenuCategory[] = [
         description:
           "Seasonal Vegetables, Kaffir Lime Leaves, Citrus Soy & Chili Garlic",
         dietary: ["V", "VG"],
+        taste: ["savory", "tangy", "spicy"],
+        protein: "vegetable",
+        allergens: ["gluten", "soy"],
+        spiceLevel: 2,
+        cookingMethod: "wok",
       },
       {
         name: "Black Pepper Beef",
@@ -371,12 +445,34 @@ const MENU: MenuCategory[] = [
         description:
           "Stir Fried Filet Mignon with Mushroom, Celery, Broccoli & Lemongrass",
         dietary: [],
+        taste: ["savory", "spicy", "umami"],
+        protein: "beef",
+        allergens: ["soy"],
+        spiceLevel: 2,
+        cookingMethod: "wok",
       },
       {
         name: "Seafood Noodle Stir Fry",
         price: 40,
         description: "Lobster, Shrimp, Seabass, Egg & Lemongrass Sauce",
         dietary: [],
+        taste: ["savory", "umami", "tangy"],
+        protein: "seafood",
+        allergens: ["shellfish", "fish", "eggs", "gluten", "soy"],
+        spiceLevel: 1,
+        cookingMethod: "wok",
+      },
+      {
+        name: "Vegetarian Fried Rice",
+        price: 28,
+        description:
+          "Basmati Rice, Kaffir Lime Leaves, Lemongrass, Thai Chili & Szechuan Sauce",
+        dietary: ["V", "VG"],
+        taste: ["savory", "spicy", "tangy"],
+        protein: "vegetable",
+        allergens: ["soy"],
+        spiceLevel: 2,
+        cookingMethod: "wok",
       },
       {
         name: "Lobster Fried Rice",
@@ -384,6 +480,11 @@ const MENU: MenuCategory[] = [
         description:
           "Lobster Tail, Basmati Rice, Kaffir Lime Leaves, Lemongrass, Thai Chili & Szechuan Sauce",
         dietary: [],
+        taste: ["savory", "rich", "spicy"],
+        protein: "seafood",
+        allergens: ["shellfish", "soy", "eggs"],
+        spiceLevel: 2,
+        cookingMethod: "wok",
       },
     ],
   },
@@ -399,6 +500,11 @@ const MENU: MenuCategory[] = [
         description:
           "Yellow Toor & Chana Lentils, Onion Masala, Tempered with Butter, Garlic & Cumin",
         dietary: ["V", "VG"],
+        taste: ["savory", "creamy", "rich"],
+        protein: "vegetable",
+        allergens: ["dairy"],
+        spiceLevel: 1,
+        cookingMethod: "braised",
       },
       {
         name: "Pahadi Paneer",
@@ -407,6 +513,11 @@ const MENU: MenuCategory[] = [
           "Pressed Milk Cheese, Exotic Spices, Rich Yogurt, Mint & Coriander Gravy",
         dietary: ["V", "GF"],
         chefFavorite: true,
+        taste: ["creamy", "savory", "tangy", "fresh"],
+        protein: "paneer",
+        allergens: ["dairy"],
+        spiceLevel: 1,
+        cookingMethod: "braised",
       },
       {
         name: "Achari Bhindi Do Pyaza",
@@ -415,6 +526,11 @@ const MENU: MenuCategory[] = [
           "Spiced Okra and Onion, Cumin, Chili, Pickled Mango Masala",
         dietary: ["V", "VG", "GF"],
         chefFavorite: true,
+        taste: ["tangy", "spicy", "savory"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 2,
+        cookingMethod: "braised",
       },
       {
         name: "Fire-Roasted Baby Baingan",
@@ -422,6 +538,11 @@ const MENU: MenuCategory[] = [
         description:
           "Fire-Roasted Baby Indian Eggplant Stuffed with Smoky South Indian Masala with Whipped Lebne",
         dietary: ["V", "GF"],
+        taste: ["smoky", "savory", "creamy"],
+        protein: "vegetable",
+        allergens: ["dairy"],
+        spiceLevel: 1,
+        cookingMethod: "tandoor",
       },
       {
         name: "Roasted Aloo Gobi Masala",
@@ -429,6 +550,11 @@ const MENU: MenuCategory[] = [
         description:
           "Turmeric-Roasted Potatoes & Cauliflower, Green Chili, Onion & Ginger",
         dietary: ["V", "VG", "GF"],
+        taste: ["savory", "spicy", "fresh"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 2,
+        cookingMethod: "braised",
       },
       {
         name: "Butter Chicken",
@@ -436,6 +562,11 @@ const MENU: MenuCategory[] = [
         description:
           "Chicken Thigh Tikka in a Cashew & Tomato Butter Sauce with Fenugreek",
         dietary: ["GF"],
+        taste: ["creamy", "rich", "savory", "sweet"],
+        protein: "chicken",
+        allergens: ["dairy", "nuts"],
+        spiceLevel: 1,
+        cookingMethod: "braised",
       },
       {
         name: "Lobster Green Curry",
@@ -444,6 +575,11 @@ const MENU: MenuCategory[] = [
           "Poached Lobster Tail, Green Coconut Masala, Mexican Chili, Coriander-Mint Purée & Hand-Ground Coastal Spices",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["rich", "creamy", "spicy", "fresh"],
+        protein: "seafood",
+        allergens: ["shellfish"],
+        spiceLevel: 2,
+        cookingMethod: "braised",
       },
       {
         name: "Fish Moilee Masala",
@@ -451,12 +587,22 @@ const MENU: MenuCategory[] = [
         description:
           "Sea Bass, Turmeric & Mustard, Curry Leaves, Coconut Tamarind Sauce",
         dietary: ["GF"],
+        taste: ["creamy", "tangy", "savory"],
+        protein: "fish",
+        allergens: ["fish"],
+        spiceLevel: 1,
+        cookingMethod: "braised",
       },
       {
         name: "Chicken Tariwala",
         price: 34,
         description: "Slow-Cooked Chicken Thigh in a Spiced Home-Style Curry",
         dietary: ["GF"],
+        taste: ["savory", "spicy", "rich"],
+        protein: "chicken",
+        allergens: [],
+        spiceLevel: 2,
+        cookingMethod: "braised",
       },
       {
         name: "Nihari Gosht",
@@ -465,6 +611,11 @@ const MENU: MenuCategory[] = [
           "Slow-Braised Goat in Bone Marrow Gravy, Finished with Whole Roasted Spices",
         dietary: ["GF"],
         chefFavorite: true,
+        taste: ["rich", "savory", "umami", "spicy"],
+        protein: "goat",
+        allergens: [],
+        spiceLevel: 2,
+        cookingMethod: "braised",
       },
     ],
   },
@@ -480,6 +631,11 @@ const MENU: MenuCategory[] = [
         description:
           "Vegetable Tikki, Saffron Basmati Rice, Indian Herbs & Spices",
         dietary: ["V"],
+        taste: ["savory", "fragrant", "rich"],
+        protein: "vegetable",
+        allergens: ["gluten", "dairy"],
+        spiceLevel: 1,
+        cookingMethod: "braised",
       },
       {
         name: "Tandoori Murgh Biryani",
@@ -487,6 +643,11 @@ const MENU: MenuCategory[] = [
         description:
           "Tandoori Chicken, Saffron Basmati Rice, Biryani Masala & Toasted Nuts",
         dietary: ["GF"],
+        taste: ["savory", "smoky", "fragrant", "rich"],
+        protein: "chicken",
+        allergens: ["nuts", "dairy"],
+        spiceLevel: 1,
+        cookingMethod: "braised",
       },
       {
         name: "Mutton Biryani",
@@ -494,6 +655,11 @@ const MENU: MenuCategory[] = [
         description:
           "Marinated Goat, Saffron Basmati Rice, Indian Herbs & Spices",
         dietary: ["GF"],
+        taste: ["rich", "savory", "fragrant", "spicy"],
+        protein: "goat",
+        allergens: ["dairy"],
+        spiceLevel: 2,
+        cookingMethod: "braised",
       },
     ],
   },
@@ -508,36 +674,66 @@ const MENU: MenuCategory[] = [
         price: 5,
         description: "Classic leavened bread from the tandoor",
         dietary: [],
+        taste: ["savory"],
+        protein: "vegetable",
+        allergens: ["gluten", "dairy"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
       },
       {
         name: "Tandoori Roti",
         price: 6,
         description: "Whole wheat unleavened bread",
         dietary: [],
+        taste: ["savory"],
+        protein: "vegetable",
+        allergens: ["gluten"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
       },
       {
-        name: "Garlic Cilantro",
+        name: "Garlic Cilantro Naan",
         price: 6,
         description: "Naan topped with garlic and fresh cilantro",
         dietary: [],
+        taste: ["savory", "fresh"],
+        protein: "vegetable",
+        allergens: ["gluten", "dairy"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
       },
       {
-        name: "Goat Cheese & Togarashi",
+        name: "Goat Cheese & Togarashi Naan",
         price: 7,
         description: "Naan with creamy goat cheese and Japanese spice blend",
         dietary: [],
+        taste: ["savory", "creamy", "spicy"],
+        protein: "vegetable",
+        allergens: ["gluten", "dairy"],
+        spiceLevel: 1,
+        cookingMethod: "tandoor",
       },
       {
-        name: "Black Truffle & Fleur de Sel",
+        name: "Black Truffle & Fleur de Sel Naan",
         price: 8,
         description: "Luxurious naan with black truffle and sea salt",
         dietary: [],
+        taste: ["rich", "umami", "savory"],
+        protein: "vegetable",
+        allergens: ["gluten", "dairy"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
       },
       {
         name: "Exotic Bread Basket",
         price: 21,
         description: "A selection of our finest tandoori breads",
         dietary: [],
+        taste: ["savory"],
+        protein: "vegetable",
+        allergens: ["gluten", "dairy"],
+        spiceLevel: 0,
+        cookingMethod: "tandoor",
       },
     ],
   },
@@ -552,60 +748,277 @@ const MENU: MenuCategory[] = [
         price: 5,
         description: "Cooling yogurt with cucumber",
         dietary: [],
+        taste: ["creamy", "fresh", "tangy"],
+        protein: "vegetable",
+        allergens: ["dairy"],
+        spiceLevel: 0,
       },
       {
         name: "Onion & Green Chili Salad",
         price: 8,
         description: "Fresh onions with spicy green chilies",
         dietary: [],
+        taste: ["spicy", "fresh", "tangy"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 2,
       },
       {
         name: "Trio of Chutney",
         price: 6,
         description: "Three house-made chutneys",
         dietary: [],
+        taste: ["tangy", "spicy", "sweet"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 1,
       },
       {
         name: "House Spiced Pickles",
         price: 10,
         description: "Traditional Indian pickles",
         dietary: [],
+        taste: ["tangy", "spicy", "savory"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 2,
       },
       {
         name: "Basmati Rice",
         price: 6,
         description: "Steamed aromatic basmati rice",
         dietary: [],
+        taste: ["savory", "fragrant"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 0,
       },
       {
         name: "Masala Papad",
         price: 5,
         description: "Crispy wafers with masala topping",
         dietary: [],
+        taste: ["crispy", "spicy", "savory"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 1,
+      },
+      {
+        name: "Persian Cucumber",
+        price: 5,
+        description: "Fresh Persian cucumbers",
+        dietary: [],
+        taste: ["fresh", "light"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 0,
       },
       {
         name: "Josper Grill Vegetables",
         price: 12,
         description: "Seasonal vegetables from our Josper oven",
         dietary: [],
+        taste: ["smoky", "savory"],
+        protein: "vegetable",
+        allergens: [],
+        spiceLevel: 0,
+        cookingMethod: "josper",
       },
     ],
   },
 ];
 
 // ============================================
-// CHAT MESSAGE TYPES
+// ALLERGEN MAPPING
 // ============================================
 
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
+const ALLERGEN_NAMES: Record<string, string> = {
+  dairy: "Dairy",
+  nuts: "Tree Nuts",
+  gluten: "Gluten",
+  shellfish: "Shellfish",
+  eggs: "Eggs",
+  soy: "Soy",
+  fish: "Fish",
+};
+
+const COMMON_ALLERGENS = [
+  "dairy",
+  "nuts",
+  "gluten",
+  "shellfish",
+  "eggs",
+  "soy",
+  "fish",
+];
+
+// ============================================
+// TASTE/MOOD PROFILES
+// ============================================
+
+type MoodType =
+  | "adventurous"
+  | "comfort"
+  | "light"
+  | "indulgent"
+  | "spicy"
+  | "mild"
+  | "seafood"
+  | "meat"
+  | "vegetarian";
+
+const MOOD_RECOMMENDATIONS: Record<
+  MoodType,
+  {
+    tastes?: string[];
+    proteins?: string[];
+    maxSpice?: number;
+    minSpice?: number;
+  }
+> = {
+  adventurous: {
+    tastes: ["umami", "tangy", "spicy", "smoky"],
+    proteins: ["seafood", "goat", "lamb"],
+  },
+  comfort: {
+    tastes: ["creamy", "rich", "savory"],
+    proteins: ["chicken", "paneer", "vegetable"],
+  },
+  light: { tastes: ["light", "fresh", "tangy"], maxSpice: 1 },
+  indulgent: {
+    tastes: ["rich", "creamy", "umami"],
+    proteins: ["beef", "lamb", "seafood"],
+  },
+  spicy: { tastes: ["spicy"], minSpice: 2 },
+  mild: { tastes: ["creamy", "savory", "sweet"], maxSpice: 1 },
+  seafood: { proteins: ["fish", "seafood"] },
+  meat: { proteins: ["chicken", "lamb", "beef", "goat"] },
+  vegetarian: { proteins: ["vegetable", "paneer"] },
+};
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function getAllItems(): MenuItem[] {
+  const items: MenuItem[] = [];
+  MENU.forEach((cat) => cat.items.forEach((item) => items.push(item)));
+  return items;
+}
+
+function filterByAllergens(
+  items: MenuItem[],
+  avoidAllergens: string[],
+): MenuItem[] {
+  return items.filter(
+    (item) => !item.allergens.some((a) => avoidAllergens.includes(a)),
+  );
+}
+
+function filterByDietary(items: MenuItem[], dietary: string): MenuItem[] {
+  return items.filter((item) => item.dietary.includes(dietary));
+}
+
+function filterBySpiceLevel(
+  items: MenuItem[],
+  maxSpice?: number,
+  minSpice?: number,
+): MenuItem[] {
+  return items.filter((item) => {
+    if (maxSpice !== undefined && item.spiceLevel > maxSpice) return false;
+    if (minSpice !== undefined && item.spiceLevel < minSpice) return false;
+    return true;
+  });
+}
+
+function filterByProtein(items: MenuItem[], proteins: string[]): MenuItem[] {
+  return items.filter(
+    (item) => item.protein && proteins.includes(item.protein),
+  );
+}
+
+function filterByTaste(items: MenuItem[], tastes: string[]): MenuItem[] {
+  return items.filter((item) => item.taste.some((t) => tastes.includes(t)));
+}
+
+function scoreItemForMood(item: MenuItem, mood: MoodType): number {
+  const prefs = MOOD_RECOMMENDATIONS[mood];
+  let score = 0;
+  if (prefs.tastes) {
+    score += item.taste.filter((t) => prefs.tastes!.includes(t)).length * 2;
+  }
+  if (prefs.proteins && item.protein && prefs.proteins.includes(item.protein)) {
+    score += 3;
+  }
+  if (item.chefFavorite) score += 2;
+  if (prefs.maxSpice !== undefined && item.spiceLevel <= prefs.maxSpice)
+    score += 1;
+  if (prefs.minSpice !== undefined && item.spiceLevel >= prefs.minSpice)
+    score += 2;
+  return score;
+}
+
+function getRecommendationsForMood(
+  mood: MoodType,
+  avoidAllergens: string[] = [],
+  count = 5,
+): MenuItem[] {
+  let items = getAllItems();
+  items = filterByAllergens(items, avoidAllergens);
+  const prefs = MOOD_RECOMMENDATIONS[mood];
+  if (prefs.maxSpice !== undefined)
+    items = filterBySpiceLevel(items, prefs.maxSpice, undefined);
+  if (prefs.minSpice !== undefined)
+    items = filterBySpiceLevel(items, undefined, prefs.minSpice);
+  if (prefs.proteins)
+    items = items.filter(
+      (i) => !i.protein || prefs.proteins!.includes(i.protein),
+    );
+  const scored = items.map((item) => ({
+    item,
+    score: scoreItemForMood(item, mood),
+  }));
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, count).map((s) => s.item);
+}
+
+function getSafeItemsForAllergens(allergens: string[]): MenuItem[] {
+  return filterByAllergens(getAllItems(), allergens);
+}
+
+function getChefFavorites(): MenuItem[] {
+  return getAllItems().filter((item) => item.chefFavorite);
+}
+
+function getItemsByDietary(dietary: string): MenuItem[] {
+  return filterByDietary(getAllItems(), dietary);
+}
+
+function formatPrice(price: number | string): string {
+  return typeof price === "number" ? `$${price}` : price;
+}
+
+function formatMenuItem(item: MenuItem): string {
+  let line = `**${item.name}** — ${formatPrice(item.price)}`;
+  if (item.chefFavorite) line = `◉ ${line}`;
+  if (item.dietary.length > 0)
+    line += ` ${item.dietary.map((d) => `(${d})`).join(" ")}`;
+  line += `\n${item.description}`;
+  if (item.spiceLevel >= 2) line += `\n🌶️ *Spicy*`;
+  return line;
+}
+
+function formatItemCompact(item: MenuItem): string {
+  let line = `• **${item.name}** — ${formatPrice(item.price)}`;
+  if (item.chefFavorite)
+    line = `• ◉ **${item.name}** — ${formatPrice(item.price)}`;
+  if (item.dietary.length > 0)
+    line += ` ${item.dietary.map((d) => `(${d})`).join(" ")}`;
+  return line;
 }
 
 // ============================================
-// INTENT DETECTION & RESPONSE GENERATION
+// INTENT DETECTION
 // ============================================
 
 type IntentType =
@@ -637,241 +1050,164 @@ type IntentType =
   | "thanks"
   | "goodbye"
   | "help"
+  | "allergy_query"
+  | "mood_adventurous"
+  | "mood_comfort"
+  | "mood_light"
+  | "mood_indulgent"
+  | "mood_spicy"
+  | "mood_mild"
+  | "mood_seafood"
+  | "mood_meat"
+  | "recommendation"
   | "default";
+
+function detectAllergens(message: string): string[] {
+  const lower = message.toLowerCase();
+  const found: string[] = [];
+  if (/dairy|milk|lactose|cheese|cream|butter/i.test(lower))
+    found.push("dairy");
+  if (/nut|peanut|almond|cashew|walnut|pecan/i.test(lower)) found.push("nuts");
+  if (/gluten|wheat|bread|celiac/i.test(lower)) found.push("gluten");
+  if (/shellfish|shrimp|lobster|crab|oyster|clam|mussel/i.test(lower))
+    found.push("shellfish");
+  if (/egg/i.test(lower)) found.push("eggs");
+  if (/soy|soya|tofu/i.test(lower)) found.push("soy");
+  if (/fish(?!.*shellfish)/i.test(lower) && !/jellyfish/i.test(lower))
+    found.push("fish");
+  return found;
+}
+
+function detectMood(message: string): MoodType | null {
+  const lower = message.toLowerCase();
+  if (
+    /adventur|bold|unique|surprise|different|exotic|try something new/i.test(
+      lower,
+    )
+  )
+    return "adventurous";
+  if (/comfort|cozy|warm|homey|classic|familiar|soul/i.test(lower))
+    return "comfort";
+  if (/light|fresh|healthy|not heavy|not too heavy|refreshing/i.test(lower))
+    return "light";
+  if (/indulg|splurge|treat|special|luxur|rich|decadent/i.test(lower))
+    return "indulgent";
+  if (/spicy|hot|heat|kick|fire|burn/i.test(lower)) return "spicy";
+  if (/mild|not spicy|no spice|gentle|subtle|bland/i.test(lower)) return "mild";
+  if (/seafood|fish|ocean|shrimp|lobster|oyster|crab/i.test(lower))
+    return "seafood";
+  if (/meat|protein|chicken|lamb|beef|goat|steak/i.test(lower)) return "meat";
+  return null;
+}
 
 function detectIntent(message: string): IntentType {
   const lower = message.toLowerCase();
 
-  // Greetings
+  // Allergy check first
+  const allergens = detectAllergens(message);
+  if (
+    allergens.length > 0 &&
+    /allerg|can.?t eat|avoid|intoleran|sensitiv|without|free from|no\s+\w+/i.test(
+      lower,
+    )
+  ) {
+    return "allergy_query";
+  }
+
+  // Mood/taste detection
+  const mood = detectMood(message);
+  if (mood) {
+    if (
+      /recommend|suggest|what should|mood|craving|feel like|in the mood/i.test(
+        lower,
+      )
+    ) {
+      switch (mood) {
+        case "adventurous":
+          return "mood_adventurous";
+        case "comfort":
+          return "mood_comfort";
+        case "light":
+          return "mood_light";
+        case "indulgent":
+          return "mood_indulgent";
+        case "spicy":
+          return "mood_spicy";
+        case "mild":
+          return "mood_mild";
+        case "seafood":
+          return "mood_seafood";
+        case "meat":
+          return "mood_meat";
+      }
+    }
+  }
+
+  // General recommendation request
+  if (
+    /recommend|suggest|what should i|what do you suggest|help.*choose|what's good|what.s popular/i.test(
+      lower,
+    )
+  ) {
+    return "recommendation";
+  }
+
+  // Standard intents
   if (
     /^(hi|hello|hey|good\s*(morning|evening|afternoon)|howdy|greetings)/i.test(
       lower,
     )
-  ) {
+  )
     return "greeting";
-  }
-
-  // Hours
-  if (/hours|open|close|when.*open|time|schedule/i.test(lower)) {
-    return "hours";
-  }
-
-  // Location
-  if (/where|location|address|directions|find you|how.*get/i.test(lower)) {
+  if (/hours|open|close|when.*open|time|schedule/i.test(lower)) return "hours";
+  if (/where|location|address|directions|find you|how.*get/i.test(lower))
     return "location";
-  }
-
-  // Reservations
-  if (/reserv|book|table|sevenrooms|availability/i.test(lower)) {
+  if (/reserv|book|table|sevenrooms|availability/i.test(lower))
     return "reservations";
-  }
-
-  // Chef
-  if (/chef|anand|singh|michelin|who.*cook/i.test(lower)) {
-    return "chef";
-  }
-
-  // Bar Jadu
-  if (
-    /bar\s*jadu|cocktail|drink|mixologist|giuseppe|hidden.*bar/i.test(lower)
-  ) {
+  if (/chef|anand|singh|michelin|who.*cook/i.test(lower)) return "chef";
+  if (/bar\s*jadu|cocktail|drink|mixologist|giuseppe|hidden.*bar/i.test(lower))
     return "bar_jadu";
-  }
-
-  // Private Dining
   if (
     /private|jadu.*room|event|corporate|vip|celebration|party|minimum.*spend/i.test(
       lower,
     )
-  ) {
+  )
     return "private_dining";
-  }
-
-  // Dietary - specific
-  if (/vegetarian|veggie\s+options?/i.test(lower)) {
-    return "vegetarian";
-  }
-  if (/vegan/i.test(lower)) {
-    return "vegan";
-  }
-  if (/gluten\s*free|gf|celiac|no\s*gluten/i.test(lower)) {
-    return "gluten_free";
-  }
-  if (/diet|allerg|restrict/i.test(lower)) {
-    return "dietary";
-  }
-
-  // Chef favorites
+  if (/vegetarian|veggie\s+options?/i.test(lower)) return "vegetarian";
+  if (/vegan/i.test(lower)) return "vegan";
+  if (/gluten\s*free|gf|celiac|no\s*gluten/i.test(lower)) return "gluten_free";
+  if (/diet|restrict/i.test(lower)) return "dietary";
+  if (/favorite|signature|must.*try|best.*dish|popular|special/i.test(lower))
+    return "chef_favorites";
+  if (/most.*expensive|splurge|luxury item/i.test(lower)) return "expensive";
+  if (/price|cost|cheap|afford|budget/i.test(lower)) return "prices";
+  if (/caviar/i.test(lower)) return "caviar";
+  if (/wagyu/i.test(lower)) return "wagyu";
+  if (/josper/i.test(lower)) return "josper";
+  if (/tandoor/i.test(lower)) return "tandoor";
+  if (/cook|technique|method|fire|charcoal|grill|wok|mangal/i.test(lower))
+    return "cooking_methods";
   if (
-    /favorite|signature|recommend|must.*try|best.*dish|popular|special/i.test(
+    /raw|crudo|oyster|sashimi|sushi|tambazushi|nigiri|soup|salad|street|chaat|samosa|curry|curries|biryani|rice|bread|naan|roti/i.test(
       lower,
     )
-  ) {
-    return "chef_favorites";
-  }
-
-  // Prices
-  if (/price|cost|expensive|cheap|afford|budget/i.test(lower)) {
-    return "prices";
-  }
-  if (/most.*expensive|splurge|luxury|high.*end/i.test(lower)) {
-    return "expensive";
-  }
-
-  // Specific items
-  if (/caviar/i.test(lower)) {
-    return "caviar";
-  }
-  if (/wagyu/i.test(lower)) {
-    return "wagyu";
-  }
-
-  // Cooking methods
-  if (/josper/i.test(lower)) {
-    return "josper";
-  }
-  if (/tandoor/i.test(lower)) {
-    return "tandoor";
-  }
-  if (/cook|technique|method|fire|charcoal|grill|wok|mangal/i.test(lower)) {
-    return "cooking_methods";
-  }
-
-  // Menu categories
-  if (/raw|crudo|oyster|sashimi/i.test(lower)) {
+  )
     return "menu_category";
-  }
-  if (/sushi|tambazushi|nigiri/i.test(lower)) {
-    return "menu_category";
-  }
-  if (/soup|salad/i.test(lower)) {
-    return "menu_category";
-  }
-  if (/street|chaat|samosa/i.test(lower)) {
-    return "menu_category";
-  }
-  if (/curry|curries/i.test(lower)) {
-    return "menu_category";
-  }
-  if (/biryani|rice/i.test(lower)) {
-    return "menu_category";
-  }
-  if (/bread|naan|roti/i.test(lower)) {
-    return "menu_category";
-  }
-  if (/menu|food|eat|dish|cuisine/i.test(lower)) {
-    return "menu_general";
-  }
-
-  // Contact
-  if (/phone|call|number/i.test(lower)) {
-    return "phone";
-  }
-  if (/contact|email|reach/i.test(lower)) {
-    return "contact";
-  }
-
-  // Parking
-  if (/park/i.test(lower)) {
-    return "parking";
-  }
-
-  // Dress code
-  if (/dress|wear|attire|code|formal/i.test(lower)) {
-    return "dress_code";
-  }
-
-  // Thanks
-  if (/thank|appreciate|grateful/i.test(lower)) {
-    return "thanks";
-  }
-
-  // Goodbye
-  if (/bye|goodbye|see you|later/i.test(lower)) {
-    return "goodbye";
-  }
-
-  // Help
-  if (/help|assist|support|what can you/i.test(lower)) {
-    return "help";
-  }
+  if (/menu|food|eat|dish|cuisine/i.test(lower)) return "menu_general";
+  if (/phone|call|number/i.test(lower)) return "phone";
+  if (/contact|email|reach/i.test(lower)) return "contact";
+  if (/park/i.test(lower)) return "parking";
+  if (/dress|wear|attire|code|formal/i.test(lower)) return "dress_code";
+  if (/thank|appreciate|grateful/i.test(lower)) return "thanks";
+  if (/bye|goodbye|see you|later/i.test(lower)) return "goodbye";
+  if (/help|assist|support|what can you/i.test(lower)) return "help";
 
   return "default";
 }
 
-function formatPrice(price: number | string): string {
-  if (typeof price === "number") {
-    return `$${price}`;
-  }
-  return price;
-}
-
-function formatMenuItem(item: MenuItem, showCategory = false): string {
-  let line = `**${item.name}** — ${formatPrice(item.price)}`;
-  if (item.chefFavorite) {
-    line = `◉ ${line}`;
-  }
-  if (item.dietary.length > 0) {
-    const tags = item.dietary.map((d) => `(${d})`).join(" ");
-    line += ` ${tags}`;
-  }
-  line += `\n${item.description}`;
-  return line;
-}
-
-function getMenuItemsByDietary(dietaryCode: string): MenuItem[] {
-  const items: MenuItem[] = [];
-  MENU.forEach((category) => {
-    category.items.forEach((item) => {
-      if (item.dietary.includes(dietaryCode)) {
-        items.push(item);
-      }
-    });
-  });
-  return items;
-}
-
-function getChefFavorites(): MenuItem[] {
-  const items: MenuItem[] = [];
-  MENU.forEach((category) => {
-    category.items.forEach((item) => {
-      if (item.chefFavorite) {
-        items.push(item);
-      }
-    });
-  });
-  return items;
-}
-
-function findCategory(query: string): MenuCategory | null {
-  const lower = query.toLowerCase();
-  return (
-    MENU.find((cat) => {
-      const catLower = cat.name.toLowerCase();
-      if (
-        catLower.includes(lower) ||
-        lower.includes(catLower.split(" ")[0].toLowerCase())
-      ) {
-        return true;
-      }
-      // Check specific keywords
-      if (lower.includes("raw") && catLower.includes("raw")) return true;
-      if (lower.includes("sushi") && catLower.includes("sushi")) return true;
-      if (lower.includes("soup") && catLower.includes("soup")) return true;
-      if (lower.includes("salad") && catLower.includes("salad")) return true;
-      if (lower.includes("street") && catLower.includes("street")) return true;
-      if (lower.includes("fire") && catLower.includes("fire")) return true;
-      if (lower.includes("josper") && catLower.includes("josper")) return true;
-      if (lower.includes("wok") && catLower.includes("wok")) return true;
-      if (lower.includes("curry") && catLower.includes("curry")) return true;
-      if (lower.includes("biryani") && catLower.includes("biryani"))
-        return true;
-      if (lower.includes("bread") && catLower.includes("bread")) return true;
-      if (lower.includes("naan") && catLower.includes("bread")) return true;
-      return false;
-    }) || null
-  );
-}
+// ============================================
+// RESPONSE GENERATION
+// ============================================
 
 function generateResponse(message: string, intent: IntentType): string {
   switch (intent) {
@@ -880,140 +1216,195 @@ function generateResponse(message: string, intent: IntentType): string {
 
 *"Rooted in Tradition. It's Not Just a Restaurant; It's an Experience."*
 
-I'm Agni, your guide to our contemporary Indian fine dining experience. How may I assist you today?
+I'm Agni, your guide to contemporary Indian fine dining. How may I assist you?
 
 You can ask me about:
 • Our menu & chef's favorites
-• Reservations & hours
-• Bar Jadu (our hidden cocktail bar)
-• Private dining for special events
-• Dietary accommodations`;
+• **Recommendations based on your mood** ("I'm craving something spicy")
+• **Dietary needs & allergies** ("I have a nut allergy")
+• Reservations, Bar Jadu, private dining`;
 
-    case "hours":
-      return `**Hours of Operation**
+    case "allergy_query":
+      const allergens = detectAllergens(message);
+      const safeItems = getSafeItemsForAllergens(allergens);
+      const allergenNames = allergens.map((a) => ALLERGEN_NAMES[a]).join(", ");
+      const safeList = safeItems.slice(0, 8).map(formatItemCompact).join("\n");
+      return `**Safe Options — No ${allergenNames}**
 
-We're open **7 days a week** for dinner service:
+I've filtered our menu for items that don't contain ${allergenNames.toLowerCase()}:
 
-📍 **Monday - Sunday**: 5:00 PM - 10:00 PM
+${safeList}
 
-Ready to reserve your table?
-→ [Book on SevenRooms](https://sevenrooms.com/explore/tambalasvegas)
-→ Or call us: **(702) 798-7889**`;
+...and **${safeItems.length} more items** available!
 
-    case "location":
-      return `**Find Us**
+Many additional dishes can be modified. **Please inform your server** of your allergies — our kitchen takes dietary restrictions seriously.
 
-📍 **6671 Las Vegas Blvd South, Suite A-117**
-Las Vegas, NV 89119
+Would you like me to narrow this down further by cuisine type or taste preference?`;
 
-We're located in **Town Square** — with plenty of parking available throughout the shopping center.
+    case "mood_adventurous":
+      const advItems = getRecommendationsForMood("adventurous", [], 5);
+      const advList = advItems.map(formatItemCompact).join("\n");
+      return `**Feeling Adventurous?** 🔥
 
-🗺️ [Get Directions](https://maps.google.com/?q=6671+Las+Vegas+Blvd+South+Las+Vegas+NV)
+For the bold explorer, I recommend:
 
-📞 **(702) 798-7889**`;
+${advList}
 
-    case "reservations":
-      return `**Reserve Your Experience**
+These dishes showcase unique flavors, unexpected combinations, and Tamba's innovative spirit.
 
-Tamba offers a limited-seating, intimate dining experience. We recommend reservations, especially for weekends.
+◉ = Chef Anand's personal favorites
 
-🔥 **Book Online**: [SevenRooms](https://sevenrooms.com/explore/tambalasvegas)
-📞 **Call**: (702) 798-7889
+Any dietary restrictions I should consider?`;
 
-For **private events** (Jadu Room), minimum spend starts at $3,000. Contact us at **info@tambalasvegas.com** to begin planning.
+    case "mood_comfort":
+      const comfortItems = getRecommendationsForMood("comfort", [], 5);
+      const comfortList = comfortItems.map(formatItemCompact).join("\n");
+      return `**Comfort Food Cravings** 🍛
 
-How many guests will be joining you?`;
+For warming, soul-satisfying dishes:
 
-    case "chef":
-      return `**Chef Anand Singh**
-*Executive Chef, Michelin-Recognized*
+${comfortList}
 
-Chef Anand leads Tamba's kitchen with a vision that honors tradition while embracing innovation. His dishes are marked with ◉ on our menu — each one a testament to his mastery of live-fire cooking.
+Rich, creamy, and deeply satisfying — these are the dishes that feel like home.
 
-His specialties include the **Lasooni Lamb Chop**, **Lobster Green Curry**, and the showstopping **Angara Wagyu**.
+Pair with **Garlic Cilantro Naan** ($6) to complete the experience.`;
 
-*"Every Bite Is a Chronicle. Every Meal, a Journey."*
+    case "mood_light":
+      const lightItems = getRecommendationsForMood("light", [], 5);
+      const lightList = lightItems.map(formatItemCompact).join("\n");
+      return `**Light & Fresh** 🥗
 
-Would you like to see Chef Anand's favorite dishes?`;
+For something refreshing and not too heavy:
 
-    case "bar_jadu":
-      return `**Bar Jadu** 🍸
-*The Hidden Enchantment*
+${lightList}
 
-Tucked within Tamba lies Bar Jadu — a hidden cocktail sanctuary led by **Master Mixologist Giuseppe Gonzalez**.
+These dishes bring brightness, tang, and freshness to the table.
 
-His cocktails are crafted to *delight, surprise, and transport* you. Each drink tells a story, blending Indian spices with classic technique.
+The **Green Papaya Salad** is a Chef's favorite — vibrant and energizing!`;
 
-✨ Reservations available for Bar Jadu
-📞 **(702) 798-7889**
+    case "mood_indulgent":
+      const indItems = getRecommendationsForMood("indulgent", [], 5);
+      const indList = indItems.map(formatItemCompact).join("\n");
+      return `**Time to Indulge** ✨
 
-The name "Jadu" means *magic* in Hindi — and that's exactly what awaits.`;
+For a truly luxurious experience:
 
-    case "private_dining":
-      return `**Jadu Private Dining Room** ✨
-*For Moments That Matter*
+${indList}
 
-An exclusive, tucked-away space designed for intimate and luxurious events.
+These are our most decadent offerings — rich, complex, and unforgettable.
 
-**Features:**
-• Contemporary design with rich cultural influences
-• Complete privacy from main dining
-• Custom menus crafted with Chef Anand Singh
-• Dedicated hospitality team
+Consider starting with **Oscietra Caviar** ($199) paired with Louis XVIII Cognac for the ultimate indulgence.`;
 
-**Perfect For:**
-VIP gatherings • Corporate dinners • Intimate celebrations
-Exclusive tastings • Cocktail pairings
+    case "mood_spicy":
+      const spicyItems = getRecommendationsForMood("spicy", [], 6);
+      const spicyList = spicyItems.map(formatItemCompact).join("\n");
+      return `**Bring the Heat!** 🌶️
 
-**Minimum Spend:** Starting at $3,000
+For those who love bold spice:
 
-📧 **info@tambalasvegas.com**
-📞 **(702) 798-7889**
+${spicyList}
 
-When would you like to host your event?`;
+All these dishes have medium to high heat levels. We use fresh chilies, Madras curry, and traditional spice blends.
+
+*Want even more heat? Ask your server for extra chili oil or our house pickles.*`;
+
+    case "mood_mild":
+      const mildItems = getRecommendationsForMood("mild", [], 6);
+      const mildList = mildItems.map(formatItemCompact).join("\n");
+      return `**Gentle Flavors**
+
+For those who prefer milder dishes:
+
+${mildList}
+
+These dishes showcase our technique without overwhelming heat. Rich, flavorful, but gentle on the palate.
+
+The **Butter Chicken** ($34) is a crowd favorite — creamy and comforting.`;
+
+    case "mood_seafood":
+      const seaItems = getRecommendationsForMood("seafood", [], 6);
+      const seaList = seaItems.map(formatItemCompact).join("\n");
+      return `**From the Sea** 🦪
+
+Our finest seafood selections:
+
+${seaList}
+
+We source premium seafood including Chilean Sea Bass, Australian oysters, and fresh lobster.
+
+The ◉ **Lobster Green Curry** and ◉ **Kimchi Butter Oysters** are Chef Anand's personal favorites!`;
+
+    case "mood_meat":
+      const meatItems = getRecommendationsForMood("meat", [], 6);
+      const meatList = meatItems.map(formatItemCompact).join("\n");
+      return `**For Meat Lovers** 🔥
+
+Our finest proteins:
+
+${meatList}
+
+From New Zealand lamb to Margaret River Wagyu to slow-braised goat — all prepared with our signature live-fire techniques.
+
+The ◉ **Lasooni Lamb Chop** ($54) is a must-try!`;
+
+    case "recommendation":
+      return `**Let Me Help You Choose!**
+
+Tell me more about what you're in the mood for:
+
+🔥 **"Something adventurous"** — Bold, unique flavors
+🍛 **"Comfort food"** — Rich, warming dishes
+🥗 **"Something light"** — Fresh and refreshing
+✨ **"Treat myself"** — Luxurious indulgence
+🌶️ **"I like spicy"** — Bring the heat
+🦪 **"Seafood lover"** — Ocean's finest
+🥩 **"Meat dishes"** — Premium proteins
+
+Or tell me about any **allergies** (e.g., "I'm allergic to nuts") and I'll find safe options!`;
+
+    case "chef_favorites":
+      const favorites = getChefFavorites();
+      const favList = favorites.map(formatMenuItem).join("\n\n");
+      return `**◉ Chef Anand's Favorites**
+
+These dishes represent the soul of Tamba:
+
+${favList}
+
+Each marked with ◉ — a personal recommendation from our Michelin-recognized chef.`;
 
     case "vegetarian":
-      const vegItems = getMenuItemsByDietary("V");
-      const vegList = vegItems
-        .slice(0, 8)
-        .map((item) => `• **${item.name}** — ${formatPrice(item.price)}`)
-        .join("\n");
+      const vegItems = getItemsByDietary("V");
+      const vegList = vegItems.slice(0, 10).map(formatItemCompact).join("\n");
       return `**Vegetarian Options** 🌱
-
-Tamba celebrates vegetable-forward cuisine with the same fire-kissed mastery as our proteins.
 
 ${vegList}
 
-...and more! We have **${vegItems.length} vegetarian dishes** on our menu.
+We have **${vegItems.length} vegetarian dishes** — from street food classics to refined curries.
 
-Most items can also be adapted. Please inform your server of any specific needs.`;
+Try the ◉ **Pahadi Paneer** ($28) or ◉ **Samosa Chaat** ($20) — both Chef's favorites!`;
 
     case "vegan":
-      const veganItems = getMenuItemsByDietary("VG");
-      const veganList = veganItems
-        .map((item) => `• **${item.name}** — ${formatPrice(item.price)}`)
-        .join("\n");
+      const veganItems = getItemsByDietary("VG");
+      const veganList = veganItems.map(formatItemCompact).join("\n");
       return `**Vegan Options** 🌿
 
 ${veganList}
 
-Many dishes can be modified to be vegan. Our kitchen is happy to accommodate — just let your server know!`;
+Many dishes can be modified to be vegan. Our kitchen is happy to accommodate!`;
 
     case "gluten_free":
-      const gfItems = getMenuItemsByDietary("GF");
-      const gfList = gfItems
-        .slice(0, 10)
-        .map((item) => `• **${item.name}** — ${formatPrice(item.price)}`)
-        .join("\n");
-      return `**Gluten-Free Options** 🌾
+      const gfItems = getItemsByDietary("GF");
+      const gfList = gfItems.slice(0, 12).map(formatItemCompact).join("\n");
+      return `**Gluten-Free Options**
 
-We have **${gfItems.length} naturally gluten-free dishes**.
+We have **${gfItems.length}** naturally gluten-free dishes:
 
 ${gfList}
 
 *...and many more!*
 
-Many additional items can be prepared gluten-free upon request. Please inform your server about any allergies.`;
+Items can be prepared gluten-free upon request. Please inform your server.`;
 
     case "dietary":
       return `**Dietary Accommodations**
@@ -1022,268 +1413,242 @@ Our menu uses these icons:
 • **(V)** — Vegetarian
 • **(VG)** — Vegan
 • **(GF)** — Gluten Free
-• **◉** — Chef Anand's Favorite
+• **◉** — Chef's Favorite
+
+**Common Allergens We Track:**
+Dairy, Nuts, Gluten, Shellfish, Eggs, Soy, Fish
 
 Many items can be prepared **gluten- or nut-free** upon request.
 
-**Please inform your server** of any dietary restrictions or allergies — our kitchen will accommodate you.
+**Tell me your specific needs** (e.g., "I'm allergic to shellfish and dairy") and I'll find perfect options for you!`;
 
-Would you like me to show you specific options?`;
+    case "hours":
+      return `**Hours of Operation**
 
-    case "chef_favorites":
-      const favorites = getChefFavorites();
-      const favList = favorites
-        .map((item) => formatMenuItem(item))
-        .join("\n\n");
-      return `**◉ Chef Anand's Favorites**
+We're open **7 days a week**:
+📍 **Monday - Sunday**: 5:00 PM - 10:00 PM
 
-These dishes represent the soul of Tamba:
+🔥 [Book on SevenRooms](https://sevenrooms.com/explore/tambalasvegas)
+📞 **(702) 798-7889**`;
 
-${favList}
+    case "location":
+      return `**Find Us**
 
-Each marked with ◉ — a personal recommendation from our Michelin-recognized chef.
+📍 **6671 Las Vegas Blvd South, Suite A-117**
+Las Vegas, NV 89119 (Town Square)
 
-Which one calls to you?`;
+🗺️ [Get Directions](https://maps.google.com/?q=6671+Las+Vegas+Blvd+South+Las+Vegas+NV)
+📞 **(702) 798-7889**`;
+
+    case "reservations":
+      return `**Reserve Your Experience**
+
+🔥 [Book Online](https://sevenrooms.com/explore/tambalasvegas)
+📞 **(702) 798-7889**
+
+For **private events** (Jadu Room), minimum $3,000.
+📧 info@tambalasvegas.com`;
+
+    case "chef":
+      return `**Chef Anand Singh**
+*Executive Chef, Michelin-Recognized*
+
+Chef Anand leads Tamba's kitchen with dishes marked ◉ on our menu — masterpieces of live-fire cooking.
+
+Signatures: **Lasooni Lamb Chop**, **Lobster Green Curry**, **Angara Wagyu**
+
+*"Every Bite Is a Chronicle."*`;
+
+    case "bar_jadu":
+      return `**Bar Jadu** 🍸
+
+A hidden cocktail sanctuary led by **Giuseppe Gonzalez**.
+
+Cocktails crafted to *delight, surprise, and transport*.
+
+"Jadu" means *magic* in Hindi.
+
+📞 **(702) 798-7889** for reservations`;
+
+    case "private_dining":
+      return `**Jadu Private Dining Room** ✨
+
+• Custom menus with Chef Anand
+• Complete privacy
+• Dedicated team
+
+**Perfect for:** VIP gatherings, corporate dinners, celebrations
+
+**Minimum:** $3,000
+
+📧 info@tambalasvegas.com
+📞 **(702) 798-7889**`;
 
     case "prices":
-      return `**Menu Price Range**
+      return `**Price Range**
 
-Our menu spans a range of experiences:
+• **Starters:** $20 - $36
+• **Breads:** $5 - $21
+• **Mains:** $28 - $52
+• **Premium:** $54 - $120
+• **Caviar:** $100 - $199
 
-**Starters & Small Plates:** $20 - $36
-**Breads:** $5 - $21
-**Main Dishes:** $28 - $52
-**Premium:** $54 - $120 (Wagyu, Lamb Chop)
-**Caviar:** $100 - $199
-
-*The menu is crafted for family-style sharing — we recommend 2-3 dishes per person.*
-
-Would you like recommendations based on your budget?`;
+*Menu is family-style — 2-3 dishes per person recommended.*`;
 
     case "expensive":
-      return `**Our Most Luxurious Offerings**
-
-For the ultimate indulgence:
+      return `**Luxurious Offerings**
 
 ◉ **Angara Wagyu** — $120
-*Margaret River New York 10 oz with Saffron Porcini Sauce*
-
-◉ **Oscietra Caviar (30g)** — $199
-*Paired with Louis XVIII Cognac*
-
+◉ **Oscietra Caviar 30g** — $199
 ◉ **Lasooni Lamb Chop** — $54
-*Lumina Farms NZ, Dry Spice Rub*
+• **Black Pepper Beef** — $52
 
-◉ **Black Pepper Beef** — $52
-*Filet Mignon, Wok-Fired*
-
-These dishes showcase the pinnacle of our craft.`;
+The pinnacle of our craft.`;
 
     case "caviar":
       return `**The Only Caviar**
-
-*Oscietra Caviar* — The crown jewel of our Raw & Refined section.
 
 • **30g** — $199
 • **½ oz** — $100
 • **1 oz** — $180
 
-Paired beautifully with **Louis XVIII Cognac**.
+Paired with **Louis XVIII Cognac**.
 
-Also try our **Caviar Puri** ($64) — puri crisps filled with whipped labneh, egg white/yolk, shallots & chives.
-
-And the **Wagyu Tambazushi** ($32) comes topped with caviar as well.`;
+Also try **Caviar Puri** ($64) and **Wagyu Nigiri** ($32) with caviar.`;
 
     case "wagyu":
       return `**Wagyu at Tamba**
 
-We source premium **Margaret River Wagyu** from Australia:
-
 **Angara Wagyu** — $120
-*10 oz New York Strip from our Josper oven*
-Broccoli, Roast Carrot Purée, Saffron Porcini Mushroom Sauce & Balsamic Curry Glaze
+*10 oz Margaret River NY Strip from Josper*
 
-**Wagyu Tambazushi** — $32
-*Charred Wagyu nigiri with Caviar, Tamarind Ponzu, Yuzu Kosho, Truffle Oil & Garlic Crisp*
-
-Both are prepared with our signature live-fire technique.`;
+**Wagyu Nigiri** — $32
+*Charred with Caviar & Truffle*`;
 
     case "josper":
-      return `**The Josper Oven** 🪵
+      return `**The Josper** 🪵
 
-*"Within the heart of the flame lies our crown jewel."*
+Our crown jewel — enclosed charcoal oven.
 
-The Josper is a specialized enclosed charcoal oven that combines the intense heat of a grill with the precision of an oven — reaching temperatures that create an unmatched char and seal in flavor.
-
-**From the Josper:**
-• **Bhuna Gobi** — $28 (GF)
+• **Bhuna Gobi** — $28
 • ◉ **Tawa Charred Octopus** — $39
-• **Banana Leaf Seabass** — $42 (GF)
-• **Angara Wagyu** — $120
-
-This is Tamba's secret weapon.`;
+• **Banana Leaf Seabass** — $42
+• **Angara Wagyu** — $120`;
 
     case "tandoor":
       return `**The Tandoor** 🔥
 
-Our traditional clay oven reaches over 900°F, creating that signature char and smoky depth.
+Traditional clay oven (900°F+)
 
-**Tandoori Specialties:**
-• Saffron Afghani Paneer — $28
-• Methi Murgh — $32
-• Lasooni Lamb Chop — $54
-
-**Tandoori Breads:**
-• Plain Naan — $5
-• Garlic Cilantro — $6
-• Black Truffle & Fleur de Sel — $8
-
-The tandoor has been central to Indian cooking for centuries.`;
+**Proteins:** Paneer, Fish Tikka, Chicken, Lamb
+**Breads:** Naan ($5-$8), Roti ($6)`;
 
     case "cooking_methods":
-      return `**Live-Fire Cooking at Tamba** 🔥
+      return `**Live-Fire Cooking** 🔥
 
-We celebrate the art of flame through five techniques:
-
-**1. Tandoor**
-Traditional clay oven for breads and tandoori items (900°F+)
-
-**2. Charcoal Mangal**
-South Asian charcoal grill for direct flame cooking
-
-**3. Josper Oven** *(Our Crown Jewel)*
-Enclosed charcoal oven — grill + oven in one
-
-**4. Wok**
-Chinese-style high-heat stir fry
-
-**5. Tawa**
-Flat iron griddle for charring
-
-*"Every Bite Is a Chronicle."*`;
+1. **Tandoor** — Clay oven (900°F+)
+2. **Josper** — Enclosed charcoal oven
+3. **Charcoal Mangal** — Direct flame grill
+4. **Wok** — High-heat stir fry
+5. **Tawa** — Iron griddle`;
 
     case "phone":
-      return `**Call Us**
-
-📞 **(702) 798-7889**
-
-We're available during service hours:
-Monday - Sunday, 5:00 PM - 10:00 PM`;
+      return `📞 **(702) 798-7889**
+Mon-Sun, 5-10 PM`;
 
     case "contact":
-      return `**Contact Tamba**
+      return `**Contact**
 
-📞 **Phone:** (702) 798-7889
-📧 **Email:** info@tambalasvegas.com
-🌐 **Website:** www.tambalasvegas.com
-📸 **Instagram:** @tambalasvegas
-
-📍 **Address:**
-6671 Las Vegas Blvd South, Suite A-117
-Town Square, Las Vegas, NV 89119
-
-For reservations: [SevenRooms](https://sevenrooms.com/explore/tambalasvegas)`;
+📞 (702) 798-7889
+📧 info@tambalasvegas.com
+📸 @tambalasvegas
+🔥 [SevenRooms](https://sevenrooms.com/explore/tambalasvegas)`;
 
     case "parking":
       return `**Parking**
 
-We're located at **Town Square Las Vegas**, which offers ample free parking throughout the shopping center.
-
-📍 6671 Las Vegas Blvd South, Suite A-117
-
-There's plenty of space close to the restaurant — you won't have trouble finding a spot.`;
+Town Square offers **free parking** throughout the center.
+📍 6671 Las Vegas Blvd South`;
 
     case "dress_code":
       return `**Dress Code**
 
-Tamba is an upscale fine dining experience. We suggest **smart casual to elegant** attire.
-
-Think: elevated, refined, comfortable.
-
-Our dining room features warm terracotta tones, plush chairs, and an intimate atmosphere — dress to match the occasion.`;
+Smart casual to elegant. Elevated, refined, comfortable.`;
 
     case "thanks":
-      return `You're most welcome. 🔥
+      return `You're welcome! 🔥
 
-If you have any other questions about Tamba, I'm here to help.
-
-*"It's Not Just a Restaurant; It's an Experience."*`;
+Anything else about Tamba?`;
 
     case "goodbye":
-      return `Thank you for your interest in **Tamba Las Vegas**.
-
-We look forward to welcoming you soon. 🔥
+      return `Thank you! We look forward to welcoming you. 🔥
 
 📞 (702) 798-7889
-🔥 [Book Your Table](https://sevenrooms.com/explore/tambalasvegas)
-
-*"Every Meal, a Journey."*`;
+🔥 [Book Your Table](https://sevenrooms.com/explore/tambalasvegas)`;
 
     case "help":
-      return `**How Can I Help?**
+      return `**I Can Help With:**
 
-I'm Agni, your guide to Tamba Las Vegas. I can assist with:
+🔥 **Menu** — Dishes, prices, categories
+🎯 **Recommendations** — Based on mood & taste
+⚠️ **Allergies** — Safe options for you
+📅 **Reservations** — Booking info
+🍸 **Bar Jadu** — Hidden cocktail bar
+✨ **Private Events** — Jadu Room
 
-🔥 **Menu & Dishes**
-Recommendations, dietary options, chef's favorites
-
-📅 **Reservations**
-Booking information, availability
-
-🍸 **Bar Jadu**
-Our hidden cocktail bar experience
-
-✨ **Private Events**
-Jadu Room for VIP gatherings
-
-📍 **Practical Info**
-Hours, location, parking, contact
-
-Just ask naturally — I'm here to help!`;
+Try: *"I'm allergic to nuts and want something spicy"*`;
 
     case "menu_general":
-      return `**Tamba Menu Overview**
-
-Our menu celebrates live-fire cooking through:
+      return `**Tamba Menu**
 
 🦪 **Raw & Refined** — Crudo, oysters, caviar
 🍣 **Tambazushi** — Fire-kissed nigiri
-🥗 **Soup & Salad** — Fresh beginnings
-🫘 **Street Classics** — India's heart, plated
-🔥 **Charcoal & Live Fire** — Tandoor & Mangal
+🥗 **Soup & Salad** — Fresh starters
+🫘 **Street Classics** — Chaats & classics
+🔥 **Charcoal & Live Fire** — Tandoor dishes
 🪵 **Josper** — Our crown jewel
-🥢 **Wok** — Quick fury of flame
-🍛 **Curries** — The soul of the table
-🍚 **Biryani** — Fragrant layered rice
-🫓 **Breads** — Flame-kissed tandoori
-🥒 **Accompaniments** — Perfect accents
+🥢 **Wok** — Stir fry
+🍛 **Curries** — Soul of the table
+🍚 **Biryani** — Fragrant rice
+🫓 **Breads** — Tandoori naan
 
-*"Every Bite Is a Chronicle."*
-
-What section interests you?`;
+What interests you? Or tell me your mood!`;
 
     case "menu_category":
-      const category = findCategory(message);
-      if (category) {
-        const items = category.items
-          .map((item) => formatMenuItem(item))
-          .join("\n\n");
-        return `**${category.emoji} ${category.name}**
-
-*${category.tagline}*
-
-${items}`;
+      const lower = message.toLowerCase();
+      let cat = MENU.find(
+        (c) =>
+          c.name.toLowerCase().includes(lower.split(" ")[0]) ||
+          lower.includes(c.name.toLowerCase().split(" ")[0]),
+      );
+      if (!cat) {
+        if (/raw|crudo|oyster|sashimi/i.test(lower)) cat = MENU[0];
+        else if (/sushi|nigiri|tambazushi/i.test(lower)) cat = MENU[1];
+        else if (/soup|salad/i.test(lower)) cat = MENU[2];
+        else if (/street|chaat|samosa/i.test(lower)) cat = MENU[3];
+        else if (/charcoal|fire|tandoor/i.test(lower)) cat = MENU[4];
+        else if (/josper/i.test(lower)) cat = MENU[5];
+        else if (/wok|stir/i.test(lower)) cat = MENU[6];
+        else if (/curry|curries/i.test(lower)) cat = MENU[7];
+        else if (/biryani|rice/i.test(lower)) cat = MENU[8];
+        else if (/bread|naan|roti/i.test(lower)) cat = MENU[9];
+      }
+      if (cat) {
+        const items = cat.items.map(formatMenuItem).join("\n\n");
+        return `**${cat.emoji} ${cat.name}**\n\n*${cat.tagline}*\n\n${items}`;
       }
       return generateResponse(message, "menu_general");
 
     default:
-      return `Thank you for your question.
+      return `I'd love to help you explore Tamba!
 
-I'm here to help with information about **Tamba Las Vegas** — our menu, reservations, private dining, Bar Jadu, and more.
+Try asking:
+• "What do you recommend for someone who likes spicy food?"
+• "I'm allergic to shellfish — what can I eat?"
+• "Show me the curries"
+• "I'm in the mood for something light"
 
-Could you tell me more about what you're looking for?
-
-📞 For immediate assistance: **(702) 798-7889**`;
+📞 **(702) 798-7889**`;
   }
 }
 
@@ -1298,23 +1663,31 @@ interface QuickAction {
 
 const INITIAL_QUICK_ACTIONS: QuickAction[] = [
   { label: "View Menu", message: "Show me the menu" },
-  { label: "Make Reservation", message: "How do I make a reservation?" },
+  { label: "Get Recommendations", message: "Help me choose what to order" },
   {
     label: "Chef's Favorites",
     message: "What are Chef Anand's favorite dishes?",
   },
-  { label: "Bar Jadu", message: "Tell me about Bar Jadu" },
+  { label: "I Have Allergies", message: "I have food allergies" },
 ];
 
 const SECONDARY_QUICK_ACTIONS: QuickAction[] = [
-  { label: "Private Dining", message: "Tell me about private dining" },
-  { label: "Hours & Location", message: "What are your hours?" },
-  {
-    label: "Vegetarian Options",
-    message: "What vegetarian dishes do you have?",
-  },
-  { label: "Contact Info", message: "How can I contact you?" },
+  { label: "Something Spicy", message: "I'm in the mood for something spicy" },
+  { label: "Seafood Options", message: "What seafood dishes do you have?" },
+  { label: "Vegetarian", message: "What vegetarian options do you have?" },
+  { label: "Make Reservation", message: "How do I make a reservation?" },
 ];
+
+// ============================================
+// CHAT MESSAGE TYPE
+// ============================================
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
 
 // ============================================
 // MAIN COMPONENT
@@ -1328,7 +1701,6 @@ export default function SofiaChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -1337,92 +1709,139 @@ export default function SofiaChat() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Focus input when chat opens
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (isOpen && inputRef.current)
       setTimeout(() => inputRef.current?.focus(), 100);
-    }
   }, [isOpen]);
 
-  // Send welcome message when first opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const welcomeMessage: ChatMessage = {
-        id: "welcome",
-        role: "assistant",
-        content: generateResponse("hello", "greeting"),
-        timestamp: new Date(),
-      };
-      setMessages([welcomeMessage]);
+      setMessages([
+        {
+          id: "welcome",
+          role: "assistant",
+          content: generateResponse("hello", "greeting"),
+          timestamp: new Date(),
+        },
+      ]);
     }
   }, [isOpen, messages.length]);
 
   const handleSend = useCallback(async () => {
     if (!input.trim()) return;
-
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
       content: input.trim(),
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
-    // Simulate typing delay for natural feel
-    await new Promise((resolve) =>
-      setTimeout(resolve, 600 + Math.random() * 800),
-    );
+    try {
+      // Build conversation history for AI
+      const conversationHistory = [...messages, userMessage].map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
 
-    const intent = detectIntent(userMessage.content);
-    const response = generateResponse(userMessage.content, intent);
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: conversationHistory }),
+      });
 
-    const assistantMessage: ChatMessage = {
-      id: `assistant-${Date.now()}`,
-      role: "assistant",
-      content: response,
-      timestamp: new Date(),
-    };
+      if (!response.ok) {
+        throw new Error("API request failed");
+      }
 
-    setIsTyping(false);
-    setMessages((prev) => [...prev, assistantMessage]);
-  }, [input]);
+      const data = await response.json();
+      setIsTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: data.message,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch {
+      // Fallback to local response if API fails
+      setIsTyping(false);
+      const intent = detectIntent(userMessage.content);
+      const response = generateResponse(userMessage.content, intent);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: response,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [input, messages]);
 
-  const handleQuickAction = useCallback((message: string) => {
-    setInput(message);
-    setTimeout(() => {
+  const handleQuickAction = useCallback(
+    async (message: string) => {
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "user",
         content: message,
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
       setIsTyping(true);
 
-      setTimeout(
-        () => {
-          const intent = detectIntent(message);
-          const response = generateResponse(message, intent);
+      try {
+        // Build conversation history for AI
+        const conversationHistory = [...messages, userMessage].map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        }));
 
-          const assistantMessage: ChatMessage = {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: conversationHistory }),
+        });
+
+        if (!response.ok) {
+          throw new Error("API request failed");
+        }
+
+        const data = await response.json();
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant-${Date.now()}`,
+            role: "assistant",
+            content: data.message,
+            timestamp: new Date(),
+          },
+        ]);
+      } catch {
+        // Fallback to local response if API fails
+        setIsTyping(false);
+        const intent = detectIntent(message);
+        const response = generateResponse(message, intent);
+        setMessages((prev) => [
+          ...prev,
+          {
             id: `assistant-${Date.now()}`,
             role: "assistant",
             content: response,
             timestamp: new Date(),
-          };
-
-          setIsTyping(false);
-          setMessages((prev) => [...prev, assistantMessage]);
-        },
-        600 + Math.random() * 800,
-      );
-    }, 50);
-  }, []);
+          },
+        ]);
+      }
+    },
+    [messages],
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -1434,12 +1853,12 @@ export default function SofiaChat() {
   const quickActions =
     messages.length <= 1 ? INITIAL_QUICK_ACTIONS : SECONDARY_QUICK_ACTIONS;
 
-  // Format message with markdown-like styling
   const formatMessage = (content: string) => {
     return content
       .replace(/\*\*(.*?)\*\*/g, '<strong class="text-tamba-gold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="text-tamba-cream/80">$1</em>')
       .replace(/◉/g, '<span class="chef-favorite">◉</span>')
+      .replace(/🌶️/g, '<span class="text-red-400">🌶️</span>')
       .replace(
         /\[(.*?)\]\((.*?)\)/g,
         '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-tamba-ember hover:text-tamba-gold underline transition-colors">$1</a>',
@@ -1449,7 +1868,6 @@ export default function SofiaChat() {
 
   return (
     <>
-      {/* Floating Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -1457,13 +1875,10 @@ export default function SofiaChat() {
           style={{ borderRadius: "4px" }}
           aria-label="Open chat with Agni"
         >
-          {/* Fire Ring Effect */}
           <div
             className="absolute inset-0 fire-ring"
             style={{ borderRadius: "4px" }}
           />
-
-          {/* Icon */}
           <div className="relative">
             <svg
               width="28"
@@ -1489,13 +1904,10 @@ export default function SofiaChat() {
               />
             </svg>
           </div>
-
-          {/* Online Indicator */}
           <div className="absolute top-2 right-2 online-indicator" />
         </button>
       )}
 
-      {/* Chat Window */}
       {isOpen && (
         <div
           className="fixed bottom-6 right-6 z-50 w-full max-w-[420px] h-[650px] flex flex-col sofia-glass fire-glow chat-open sm:bottom-6 sm:right-6 chat-mobile-full sm:chat-mobile-reset"
@@ -1504,19 +1916,15 @@ export default function SofiaChat() {
           aria-modal="true"
           aria-label="Chat with Agni"
         >
-          {/* Header */}
           <div
             className="relative flex items-center justify-between px-5 py-4 border-b border-tamba-ember/20 tandoor-gradient safe-top"
             style={{ borderRadius: "8px 8px 0 0" }}
           >
-            {/* Shimmer Effect */}
             <div
               className="absolute inset-0 header-shimmer pointer-events-none"
               style={{ borderRadius: "8px 8px 0 0" }}
             />
-
             <div className="relative flex items-center gap-3">
-              {/* Avatar */}
               <div
                 className="w-10 h-10 flex items-center justify-center bg-tamba-ember/20 border border-tamba-ember/30"
                 style={{ borderRadius: "4px" }}
@@ -1538,7 +1946,6 @@ export default function SofiaChat() {
                   />
                 </svg>
               </div>
-
               <div>
                 <h3
                   className="text-base font-semibold text-tamba-cream tracking-wide"
@@ -1555,8 +1962,6 @@ export default function SofiaChat() {
                 </div>
               </div>
             </div>
-
-            {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
               className="w-9 h-9 flex items-center justify-center text-tamba-cream/60 hover:text-tamba-cream hover:bg-tamba-ember/10 transition-all"
@@ -1576,7 +1981,6 @@ export default function SofiaChat() {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 chat-scroll">
             {messages.map((msg, index) => (
               <div
@@ -1585,11 +1989,7 @@ export default function SofiaChat() {
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <div
-                  className={`max-w-[85%] px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-tamba-ember/20 border border-tamba-ember/30 text-tamba-cream"
-                      : "bg-tamba-charcoal/80 border border-tamba-cream/10 text-tamba-cream/90"
-                  }`}
+                  className={`max-w-[85%] px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "bg-tamba-ember/20 border border-tamba-ember/30 text-tamba-cream" : "bg-tamba-charcoal/80 border border-tamba-cream/10 text-tamba-cream/90"}`}
                   style={{ borderRadius: "4px" }}
                 >
                   <div
@@ -1600,8 +2000,6 @@ export default function SofiaChat() {
                 </div>
               </div>
             ))}
-
-            {/* Typing Indicator */}
             {isTyping && (
               <div className="flex justify-start message-enter">
                 <div
@@ -1616,11 +2014,9 @@ export default function SofiaChat() {
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Actions */}
           {!isTyping && (
             <div className="px-4 pb-2">
               <div className="flex flex-wrap gap-2">
@@ -1638,7 +2034,6 @@ export default function SofiaChat() {
             </div>
           )}
 
-          {/* Input */}
           <div className="px-4 pb-4 pt-2 safe-bottom">
             <div className="flex gap-2">
               <input
@@ -1647,7 +2042,7 @@ export default function SofiaChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about our menu, reservations..."
+                placeholder="Try: I'm allergic to nuts and want spicy..."
                 className="flex-1 h-12 px-4 bg-tamba-charcoal border border-tamba-cream/15 text-tamba-cream placeholder:text-tamba-cream/40 text-sm input-fire"
                 style={{ borderRadius: "4px" }}
                 aria-label="Type your message"
